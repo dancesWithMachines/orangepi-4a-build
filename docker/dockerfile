@@ -1,0 +1,39 @@
+FROM ubuntu:22.04
+
+ENV DEBIAN_FRONTEND=noninteractive
+ENV LANG=en_US.UTF-8
+ENV LC_ALL=en_US.UTF-8
+
+# Base system requirements for orangepi-build:
+# * sudo - for comatibility only, root is default user
+# * fdisk - needed for packing up final image, not isntalled by default
+RUN apt-get update && \
+    apt-get install -y \
+        ca-certificates \
+        systemd \
+        locales \
+        tzdata \
+	    fdisk \
+        gnupg \
+	    sudo \
+        wget \
+        curl \
+        git \
+        vim \
+        xxd \
+    && locale-gen en_US.UTF-8 \
+    && update-locale LANG=en_US.UTF-8 \
+    && rm -rf /var/lib/apt/lists/*
+
+# Ensure systemd-detect-virt is reachable in PATH
+RUN ln -sf /usr/bin/systemd-detect-virt /bin/systemd-detect-virt || true
+
+# Set working directory
+WORKDIR /orangepi-build
+
+# Add banner
+COPY banner.sh /etc/profile.d/banner.sh
+RUN chmod +x /etc/profile.d/banner.sh
+
+# Build everything as root (no non-root user)
+CMD ["/bin/bash"]
